@@ -21,7 +21,6 @@ $newValue = [];
 function getGameId($inputStr)
 {
     $allIds = [];
-
     foreach ($inputStr as $value)
     {
         $game = explode(":", $value);
