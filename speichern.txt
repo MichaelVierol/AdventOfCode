@@ -1,4 +1,0 @@
-    if digits is True:
-        onlyDigits.append(i)
-
-print(onlyDigits)
