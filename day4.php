@@ -1,57 +1,64 @@
 <?php
 
-$winnerNumbers = [];
-$myCard = [];
+$sample2Path = "InputDay4.txt";
+$inputPath = "InputDay4.txt";
 
+$lines = file($sample2Path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+part1();
+part2();
 
-function getInput()
+function part1()
 {
-    $content = file_get_contents("InputDay4.txt");
-    $input = explode("\n", trim($content));
+    global $lines;
 
-    return $input;
+    $cards = array_map('parseLine', $lines);
+    $accumulativeTotal = array_sum(array_map(function ($card) {
+        $count = count(array_intersect($card['winningNumbers'], $card['myNumbers']));
+        if ($count > 0) {
+            $points = array_reduce(range(0, $count - 1), function ($sum, $i) {
+                return $sum + ($i < 2 ? 1 : 2 << ($i - 2));
+            }, 0);
+            return $points;
+        }
+        return 0;
+    }, $cards));
+
+    echo "Part1: $accumulativeTotal\n";
 }
 
-function getWiningNumbersForeachCard()
+function part2()
 {
-    $content = getInput();
-    $result = [];
+    global $inputPath;
 
-    foreach ($content as $value) {
-        $seperatedCardWithNumbers = array_map("trim", preg_split("/[:|]/", $value));
-        $myCard = $seperatedCardWithNumbers[1];
-        $winnerNumbers = $seperatedCardWithNumbers[2];
-        $result = countMatchingCharacters($myCard, $winnerNumbers);
-    }
-}
+    $input = file($inputPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $cardCount = array_fill(0, count($input), 1);
 
-function countMatchingCharacters(string $myCard, string $winnerNumbers)
-{
-    $number = explode(' ', $myCard);
-    $i = 0;
-    $result = [];
-    foreach ($number as $char) {
-        if (str_contains($char, $winnerNumbers !== false)) {
+    for ($cardId = 0; $cardId < count($input); $cardId++) {
+        $line = $input[$cardId];
+        $card = parseLine($line);
+        $matchCount = count(array_intersect($card['winningNumbers'], $card['myNumbers']));
 
-            $i++;
-            
-            if ($i > 2) {
-                $result[] = pow(2, $i);
-            } else {
-                $result[] = $i;
-            }
+        for ($i = 0; $i < $matchCount; $i++) {
+            $cardCount[$cardId + 1 + $i] += $cardCount[$cardId];
         }
     }
 
-    return $result;
+    echo array_sum($cardCount) . "\n";
 }
 
-function printResult($result)
+function parseLine($line)
 {
-    echo $result;
+    $parts = explode(':', $line);
+    $numbers = explode('|', $parts[1]);
+    $winningNumbers = extractNumbers($numbers[0]);
+    $myNumbers = extractNumbers($numbers[1]);
+
+    return ['winningNumbers' => $winningNumbers, 'myNumbers' => $myNumbers];
 }
 
-getWiningNumbersForeachCard();
+function extractNumbers($input)
+{
+    return array_map('intval', preg_split('/\s+/', $input, -1, PREG_SPLIT_NO_EMPTY));
+}
 
-
-
+?>
